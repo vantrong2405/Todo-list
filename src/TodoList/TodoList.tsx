@@ -6,10 +6,9 @@ import { Todo } from '../@types/todo.type'
 
 export default function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([])
+  const [currentTodo, setCurrentTodo] = useState<null | Todo>(null)
   const notdoneTodos = todos.filter((value) => value.done === false)
   const doneTodos = todos.filter((value) => value.done === true)
-  console.log('<<<<<<not', notdoneTodos)
-  console.log('<<<<<<done', doneTodos)
 
   const addTodo = (name: string) => {
     const todo: Todo = {
@@ -30,12 +29,56 @@ export default function TodoList() {
     })
   }
 
+  const startEditTodo = (id: string) => {
+    console.log('id : ', id);
+
+    const findedTodo = todos.find((todo) => todo.id === id)
+    if (findedTodo) {
+      setCurrentTodo(findedTodo)
+    }
+  }
+
+  const editTodo = (name: string) => {// nhận vào 1 todo
+    setCurrentTodo((prev) => {
+      if (prev) return { ...prev, name }
+      return null
+    })
+  }
+
+  const deleteTodo = (id: string) => {
+    if (currentTodo) {
+      setCurrentTodo(null)
+    }
+    setTodos((prev) => {
+      const findIndexTodo = prev.findIndex(todo => todo.id === id)
+      console.log(findIndexTodo);
+
+      if (findIndexTodo > -1) {
+        const result = [...prev];
+        result.splice(findIndexTodo, 1)
+        return result
+      }
+      return prev
+    })
+  }
+
+  const finishEditTodo = () => {
+    setTodos((prev) => {
+      return prev.map((todo) => {
+        if (todo.id === (currentTodo as Todo).id) {
+          return currentTodo as Todo
+        }
+        return todo
+      })
+    })
+    setCurrentTodo(null)
+  }
   return (
     <div className={styles.todoList}>
       <div className={styles.todoListContainer}>
-        <TaskInput addTodo={addTodo} />
-        <TaskList todos={notdoneTodos} handleDoneTodo={handleDoneTodo} />
-        <TaskList doneTaskList todos={doneTodos} handleDoneTodo={handleDoneTodo} />
+        <TaskInput addTodo={addTodo} currentTodo={currentTodo} editTodo={editTodo} finishEditTodo={finishEditTodo} />
+        <TaskList todos={notdoneTodos} handleDoneTodo={handleDoneTodo} startEditTodo={startEditTodo} deleteTodo={deleteTodo} />
+        <TaskList doneTaskList todos={doneTodos} handleDoneTodo={handleDoneTodo} startEditTodo={startEditTodo} deleteTodo={deleteTodo} />
       </div>
     </div>
   )
