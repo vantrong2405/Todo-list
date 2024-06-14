@@ -12,7 +12,8 @@ interface TaskListProps {
 export default function TaskList(props: TaskListProps) {
   const { doneTaskList, handleDoneTodo, todos, startEditTodo, deleteTodo } = props
   const onChangeCheckbox = (event: ChangeEvent<HTMLInputElement>, id: string) => {
-    handleDoneTodo(id, event.target.checked)
+    const { checked } = event.target
+    handleDoneTodo(id, checked)
   }
   return (
     <div className='mb-2'>

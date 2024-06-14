@@ -1,14 +1,21 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import TaskInput from '../TaskInput'
 import TaskList from '../TaskList'
 import styles from './todoList.module.scss'
 import { Todo } from '../@types/todo.type'
+import { stringify } from 'querystring'
 
 export default function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([])
   const [currentTodo, setCurrentTodo] = useState<null | Todo>(null)
   const notdoneTodos = todos.filter((value) => value.done === false)
   const doneTodos = todos.filter((value) => value.done === true)
+
+  useEffect(() => {
+    const todoString = localStorage.getItem('todos')
+    const todoObj: Todo[] = JSON.parse(todoString || '[]')// mảng được lưu ở localStorage
+    setTodos(todoObj);
+  }, [])
 
   const addTodo = (name: string) => {
     const todo: Todo = {
@@ -17,6 +24,11 @@ export default function TodoList() {
       id: new Date().toISOString()
     }
     setTodos((prev) => [...prev, todo])
+
+    const todoString = localStorage.getItem('todos')
+    const todoObj: Todo[] = JSON.parse(todoString || '[]')// mảng được lưu ở localStorage
+    const newTodo = [...todoObj, todo]
+    localStorage.setItem('todos', JSON.stringify(newTodo))
   }
 
   const handleDoneTodo = (id: string, done: boolean) => {
@@ -43,6 +55,7 @@ export default function TodoList() {
       if (prev) return { ...prev, name }
       return null
     })
+
   }
 
   const deleteTodo = (id: string) => {
@@ -60,7 +73,24 @@ export default function TodoList() {
       }
       return prev
     })
+    const todoString = localStorage.getItem('todos')
+    const todoObj: Todo[] = JSON.parse(todoString || '[]')// mảng được lưu ở localStorage
+    const newObj = todoObj.map((todo) => todo.id === id ? null : todo)
+      .filter(todo => todo != null)
+
+    localStorage.setItem('todos', JSON.stringify(newObj));
   }
+
+  const cloneTodo = (event: React.FormEvent<HTMLInputElement>) => {
+    const todo: Todo = {
+      name: '123',
+      done: false,
+      id: new Date().toISOString()
+    }
+    setTodos((pre) => {
+      return [...pre, todo]
+    })
+  };
 
   const finishEditTodo = () => {
     setTodos((prev) => {
@@ -72,6 +102,15 @@ export default function TodoList() {
       })
     })
     setCurrentTodo(null)
+    const todoString = localStorage.getItem('todos')
+    const todoObj: Todo[] = JSON.parse(todoString || '[]')// mảng được lưu ở localStorage
+    const newObj = todoObj.map((todo) => {
+      if (todo.id === (currentTodo as Todo).id) {
+        return currentTodo as Todo
+      }
+      return todo
+    })
+    localStorage.setItem('todos', JSON.stringify(newObj))
   }
   return (
     <div className={styles.todoList}>
